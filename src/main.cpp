@@ -4,17 +4,21 @@ using namespace std;
 
 #include "Events.h"
 #include "DTime.h"
+#include "Cmd.h"
 
 
-int main() {
+int main(int ac, char** av) {
+	try {
+		Cmd c(ac, av);
 
+		Events e;
+		e.readJournal("/home/julian/.journal");
+		e.tagsForToday();
+		e.tagsForLastNDays(7);
+		e.tagsForLastNDays(30);
 
-    Events e;
-    e.readJournal("/home/julian/.journal");
-    e.tagsForToday();
-    e.tagsForLastNDays(8);
-    e.tagsForLastNDays(31);
-
-
+	} catch(int& e) {
+		return e;
+	}
 	return 0;
 }

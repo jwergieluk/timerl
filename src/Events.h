@@ -94,25 +94,18 @@ public:
 		double ts_start = timeStamps[0];
 		double ts_end = DTime::now();
 
-//		printf("#          ");
-//		for(auto i=0; i<ord_tags.size(); i++) { printf("%s ", ord_tags[i].c_str());  }
-//		printf("\n");
+		printf("#date ");
+		for(auto i=0; i<ord_tags.size(); i++) { printf("%s ", ord_tags[i].c_str());  }
+		printf("\n");
 		for(double d= floor(ts_start); d<=ts_end; d=DTime::nextDay(d) ) {
-//			printf("%.0f ", d);
+			printf("%.0f ", d);
 			for(auto i=0; i<ord_tags.size(); i++) {
 				double l= 24.*m[ pair<string,double>(ord_tags[i], d) ];
 				ts[ ord_tags[i] ].push_back(l);
-//				printf("%f ", l);
+				printf("%f ", l);
 			}
-//			printf("\n");
+			printf("\n");
 		}
-
-//		for(auto it=ts.begin(); it!=ts.end(); it++ ) {
-//			printf("%s\n", it->first.c_str());
-//			for(auto k=0; k < it->second.size(); k++ ) {
-//				printf("%f\n", it->second[k]);
-//			}
-//		}
 	}
 
 	void tagsForToday() {
