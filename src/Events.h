@@ -7,23 +7,27 @@
 #include <set>
 #include <map>
 #include <string>
-using namespace std;
-
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include "io.h"
 #include "DTime.h"
 
-#include <cmath>
 
+
+using namespace std;
 
 class Events {
 private:
 
+	string journal_file;
 	vector<string> journal_raw;
 
 	vector<double> timeStamps, lengths;
 	vector<string> msgs, ord_tags;
 	set<string> tags;
 
+	double ts_start, ts_end;
 	vector<double > ts_dates;
 	map< string, vector<double> > ts;
 
@@ -31,9 +35,54 @@ private:
 
 public:
 
+	bool close(const string& file) {
+		char buf[500];
+		snprintf(buf, 500, "%.6f nothing\n", DTime::now());
+		string new_line=buf;
 
-	void readJournal(const string file) {
+		printf(">> %s", new_line.c_str());
+		return true;
+	}
 
+	bool add(const string& file, const vector<string>& args) {
+//		FILE* out; string buf;
+//		if ((out = fopen( file.c_str(), "a"))==NULL) return false;
+
+		char buf[500];
+		snprintf(buf, 500, "%.6f ", DTime::now());
+
+		string new_line=buf;
+		for(auto i=0; i<args.size(); i++) {
+			new_line += args[i] + " ";
+		}
+		new_line += "\n";
+
+		printf(">> %s", new_line.c_str());
+//		void dump(const string fileName, const vector<string>& vector, const bool printShape) {
+//			Error::print("dump", "dump", fileName);
+//			FILE* out; string buf;
+//
+//			if ((out = fopen( fileName.c_str(), "w"))==NULL)	throw Error("dump", "dump", (boost::format("cannot open %1%") % fileName).str(), 199);
+//
+//			try {
+//				for( int i = 0; i < (int)vector.size(); i++) {
+//					fprintf(out, "%s ", vector[i].c_str());
+//				}
+//				fprintf(out, "\n");
+//			} catch (...) {
+//				fclose(out);
+//				throw;
+//			}
+//
+//			fclose(out);
+//		}
+
+		return true;
+	}
+
+
+	void readJournal(const string& file) {
+		journal_file=file;
 		if( ! Io::file2vs(file.c_str(), journal_raw) ) {
 			printf("ERROR: Unable to read the journal file.\n");
 			throw 255;
@@ -91,18 +140,40 @@ public:
 			ord_tags.push_back(*it);
 		}
 
-		double ts_start = timeStamps[0];
-		double ts_end = DTime::now();
+		ts_start = timeStamps[0];
+		ts_end = DTime::now();
 
-		printf("#date ");
-		for(auto i=0; i<ord_tags.size(); i++) { printf("%s ", ord_tags[i].c_str());  }
-		printf("\n");
 		for(double d= floor(ts_start); d<=ts_end; d=DTime::nextDay(d) ) {
-			printf("%.0f ", d);
+			ts_dates.push_back(d);
 			for(auto i=0; i<ord_tags.size(); i++) {
 				double l= 24.*m[ pair<string,double>(ord_tags[i], d) ];
 				ts[ ord_tags[i] ].push_back(l);
-				printf("%f ", l);
+			}
+		}
+	}
+
+	double queryTag(const string& tag) {
+		if( find(ord_tags.begin(), ord_tags.end(), tag ) == ord_tags.end() ) {
+			printf("# ERROR: Tag '%s' not found in journal.\n", tag.c_str());
+			return -1.;
+		} else {
+			double sum=0.;
+			for(auto i=0; i<ts[tag].size(); i++) {
+				sum+=ts[tag][i];
+			}
+			printf("# %s %.2f\n", tag.c_str(), sum);
+			return sum;
+		}
+	}
+
+	void printTimeSeries() {
+		printf("#date ");
+		for(auto k=0; k<ord_tags.size(); k++) { printf("%s ", ord_tags[k].c_str());  }
+		printf("\n");
+		for(auto i=0; i<ts_dates.size(); i++) {
+			printf("%.0f ", ts_dates[i]);
+			for(auto k=0; k<ord_tags.size(); k++) {
+				printf("%f ", ts[ord_tags[k]][i]);
 			}
 			printf("\n");
 		}

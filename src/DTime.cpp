@@ -28,8 +28,8 @@ bool DTime::fromString(const string& s, double& d) {
 }
 
 double DTime::normalize(double t) {
-	t = normalizeTime(t);
-	return normalizeDate( (int)(floor(t)) )+ (t-floor(t));
+	double time = normalizeTime(t-floor(t));
+	return normalizeDate( (int)(floor(t)) )+ time;
 }
 
 double DTime::normalizeTime(double t) {
@@ -102,7 +102,7 @@ int DTime::daysInMonth(int year, int month) {
 
 void DTime::getTimeComponents(double t, double& days, double& hours, double& minutes, double& seconds) {
 	days = floor(t);
-	double d = 100.*(t-days);
+	double d = 100.*(t-days)+0.000001;
 	hours= d;
 	d = 100.*(d-floor(d))+0.0001;
 	minutes= d;
@@ -113,7 +113,7 @@ void DTime::getTimeComponents(double t, double& days, double& hours, double& min
 
 void DTime::getTimeComponents(double t, int& days, int& hours, int& minutes, int& seconds) {
 	days = floor(t);
-	double d = 100.*(t-days);
+	double d = 100.*(t-days)+0.000001;
 	hours= (int)floor(d);
 	d = 100.*(d-floor(d))+0.0001;
 	minutes= (int)floor(d);
@@ -165,6 +165,7 @@ double DTime::len(double t0, double t1) {
 }
 
 double DTime::lenInDays(double t0, double t1) {
+//	printf("lenInDays: %f %f \n", getDayFraction(t0), getDayFraction(t1));
 	return (double)daysBetween(t0, t1) + getDayFraction(t1) - getDayFraction(t0);
 }
 

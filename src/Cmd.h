@@ -10,19 +10,35 @@ using namespace std;
 #include "io.h"
 
 class Cmd {
+private:
+	string cmd, args_str;
+	vector<string> args;
+
 public:
 
-	Cmd(int ac, char** av) {
-		vector<string> av_;
-		for(int c=1; c<ac; c++) {
-			av_.push_back( Io::trim(av[c]) );
+	Cmd(int ac, char** av): cmd(""), args_str("") {
+		if( ac>= 2) cmd=Io::trim(av[1]);
+		for(int c=2; c<ac; c++) {
+			string a= Io::trim(av[c]);
+			args.push_back(a);
+			if(args_str.length()>0) {
+				args_str = args_str + " " + a;
+			} else {
+				args_str = a;
+			}
 		}
 	}
+
+	bool is(const string& c) {
+		return (c==cmd);
+	}
+	const string& getCmd() {	return cmd; }
+	const vector<string>& getArgsVs() {	return args; }
+	const string& getArgs() { return args_str; }
 
 	void parse(vector<string> av) {
 
 		for(int c=0; c<av.size(); c++) {
-
 //			string item = ioHelper::trim(av[c]);
 //			int pos;
 //			if( (pos=item.find("=")) != string::npos ) {
@@ -39,7 +55,6 @@ public:
 //				insert(item, "");
 //			}
 		}
-
 	}
 
 
