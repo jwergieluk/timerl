@@ -14,6 +14,26 @@
 #include "DTime.h"
 
 
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
+
+
 
 using namespace std;
 
@@ -33,53 +53,58 @@ private:
 
 	map< pair<string, double>, double > m;
 
+	string active_tag;
 public:
 
 	bool close(const string& file) {
+		if( active_tag=="nothing") {
+			printf("ERROR: no tag is active.\n");
+			return false;
+		}
+		FILE* out;
+		if ((out = fopen( file.c_str(), "a"))==NULL) return false;
+
 		char buf[500];
-		snprintf(buf, 500, "%.6f nothing\n", DTime::now());
+		double n=DTime::now();
+		snprintf(buf, 500, "%04d-%02d-%02d %02d:%02d|nothing\n", DTime::getYear(n), DTime::getMonth(n), DTime::getDay(n),
+				DTime::getHour(n), DTime::getMinute(n) );
 		string new_line=buf;
 
-		printf(">> %s", new_line.c_str());
+		if( fprintf(out, "%s", new_line.c_str()) <0) { fclose(out); return false; }
+		fclose(out);
+
+		printf("[Adding the closing tag]\n");
 		return true;
 	}
 
 	bool add(const string& file, const vector<string>& args) {
-//		FILE* out; string buf;
-//		if ((out = fopen( file.c_str(), "a"))==NULL) return false;
+		if( active_tag==args[0] ) {
+			printf("[Tag already active]\n");
+			return false;
+		}
+		if( args[0]=="nothing" ){
+			printf("ERROR: This tag name is reserved.\n");
+			return false;
+		}
+
+		FILE* out;
+		if ((out = fopen( file.c_str(), "a"))==NULL) return false;
 
 		char buf[500];
-		snprintf(buf, 500, "%.6f ", DTime::now());
-
+		double n=DTime::now();
+		snprintf(buf, 500, "%04d-%02d-%02d %02d:%02d|", DTime::getYear(n), DTime::getMonth(n), DTime::getDay(n),
+				DTime::getHour(n), DTime::getMinute(n) );
 		string new_line=buf;
-		for(auto i=0; i<args.size(); i++) {
-			new_line += args[i] + " ";
-		}
-		new_line += "\n";
+		new_line += args[0]+ "\n";
 
-		printf(">> %s", new_line.c_str());
-//		void dump(const string fileName, const vector<string>& vector, const bool printShape) {
-//			Error::print("dump", "dump", fileName);
-//			FILE* out; string buf;
-//
-//			if ((out = fopen( fileName.c_str(), "w"))==NULL)	throw Error("dump", "dump", (boost::format("cannot open %1%") % fileName).str(), 199);
-//
-//			try {
-//				for( int i = 0; i < (int)vector.size(); i++) {
-//					fprintf(out, "%s ", vector[i].c_str());
-//				}
-//				fprintf(out, "\n");
-//			} catch (...) {
-//				fclose(out);
-//				throw;
-//			}
-//
-//			fclose(out);
-//		}
+		if( fprintf(out, "%s", new_line.c_str()) <0) { fclose(out); return false; }
+		fclose(out);
 
+		printf("%s[Add]%s %02d:%02d %s\n", BOLDGREEN, RESET,DTime::getHour(DTime::now()), DTime::getMinute(DTime::now()), args[0].c_str());
 		return true;
 	}
 
+	const string& activeTag() { return active_tag; }
 
 	void readJournal(const string& file) {
 		journal_file=file;
@@ -119,6 +144,7 @@ public:
 			msgs.push_back( tag  );
 			tags.insert( tag );
 			prevStamp=d;
+			active_tag=tag;
 		}
 
 		for(auto i=0; i<timeStamps.size()-1; i++) {
@@ -222,6 +248,10 @@ public:
 		printf("\n");
 	}
 
+	void printTail() {
+		printf("# tail -n 7 %s\n", journal_file.c_str());
+		for(auto i=max((int)0, (int)(journal_raw.size()-7)); i<(int)journal_raw.size(); i++) printf("%s\n", journal_raw[i].c_str());
+	}
 };
 
 

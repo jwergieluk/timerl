@@ -122,6 +122,10 @@ void DTime::getTimeComponents(double t, int& days, int& hours, int& minutes, int
 //	printf("gtc: %f = d%d  h%d m%d s%d\n", t, days, hours, minutes, seconds);
 }
 
+int DTime::getYear(double t) { return (  (int)floor(t)   )/10000; }
+int DTime::getMonth(double t) { return ((   (int)floor(t)  ) % 10000)/100; }
+int DTime::getDay(double t) { return (int)floor(t) % 100; }
+
 int DTime::getHour(double t) {
 	double days, hours, minutes, seconds;
 	getTimeComponents(t, days, hours, minutes, seconds);
@@ -179,6 +183,23 @@ int DTime::daysBetween(double t0, double t1) {
 		diff++;
 	}
 	return diff;
+}
+
+int DTime::weekDay(int t) {
+	// http://en.wikipedia.org/wiki/Zeller%27s_congruence
+	int y = getYear(t);
+	int m = getMonth(t);
+	int d = getDay(t);
+
+	if(m==1) { m=13; y--; }
+	if(m==2) { m=14; y--; }
+
+	int j = y / 100;
+	int k = y % 100;
+
+	int wd =  d + 13*(m+1)/5 + k + k/4 + j/4 + 5*j;
+	wd = wd % 7;  // 0 = Saturday, 1 = Sunday, 2 = Monday, ...
+	return 1 + ((wd+5)%7);   // return ISO day-of-the week
 }
 
 double DTime::now() {

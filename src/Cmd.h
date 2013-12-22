@@ -36,28 +36,6 @@ public:
 	const vector<string>& getArgsVs() {	return args; }
 	const string& getArgs() { return args_str; }
 
-	void parse(vector<string> av) {
-
-		for(int c=0; c<av.size(); c++) {
-//			string item = ioHelper::trim(av[c]);
-//			int pos;
-//			if( (pos=item.find("=")) != string::npos ) {
-//
-//				string key = ioHelper::trim(item.substr(0,pos));
-//				if( pos < item.size()-1) {
-//					string value = ioHelper::trim(item.substr(pos+1, item.size()));
-//					keys.push_back(key);
-//					values.push_back(value);
-//				} else {
-//					insert(key, "");
-//				}
-//			} else {
-//				insert(item, "");
-//			}
-		}
-	}
-
-
 };
 
 

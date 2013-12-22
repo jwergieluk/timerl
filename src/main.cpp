@@ -11,7 +11,8 @@ int main(int ac, char** av) {
 	try {
 		Cmd c(ac, av);
 
-		string journal_file = "/home/julian/.journal"; //"/home/julian/distributed/workspace/j-test.txt";
+//		string journal_file = "/home/julian/.journal";
+		string journal_file = "/home/julian/distributed/workspace/j-test.txt";
 		Events e;
 		e.readJournal(journal_file);
 
@@ -26,9 +27,10 @@ int main(int ac, char** av) {
 		if( c.is("q") ) e.queryTag( c.getArgs() );
 
 
-		if( c.is("a") && c.getArgsVs().size()==0 ) e.close(journal_file);
-		if( c.is("a") && c.getArgsVs().size()>0 ) e.add(journal_file, c.getArgsVs());
-		// TODO add close tag
+		if( c.is("a") && c.getArgsVs().size()==0 ) { e.close(journal_file); }
+		if( c.is("a") && c.getArgsVs().size()>0 ) { e.add(journal_file, c.getArgsVs()); }
+
+		if( c.is("t")) e.printTail();
 
 		// TODO monthly, weekly statistics
 
