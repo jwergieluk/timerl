@@ -11,8 +11,8 @@ int main(int ac, char** av) {
 	try {
 		Cmd c(ac, av);
 
-//		string journal_file = "/home/julian/.journal";
-		string journal_file = "/home/julian/distributed/workspace/j-test.txt";
+
+		string journal_file = "/home/julian/distributed/workspace/timerl/test/1-in-a.txt";
 		Events e;
 		e.readJournal(journal_file);
 
@@ -20,11 +20,17 @@ int main(int ac, char** av) {
 			e.tagsForToday();
 			e.tagsForLastNDays(7);
 			e.tagsForLastNDays(30);
+			e.printActive();
+			e.printNotesActive();
+			e.printTail();
 		}
 
 
 		if( c.is("ts") ) e.printTimeSeries();
-		if( c.is("q") ) e.queryTag( c.getArgs() );
+		if( c.is("q") ) {
+			e.queryTag( c.getArgs() );
+			e.printNotes(c.getArgs());
+		}
 
 
 		if( c.is("a") && c.getArgsVs().size()==0 ) { e.close(journal_file); }

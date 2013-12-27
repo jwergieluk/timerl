@@ -13,6 +13,8 @@
 #include "io.h"
 #include "DTime.h"
 
+#define NOTHING "__NOTHING__"
+
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -33,8 +35,6 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 
-
-
 using namespace std;
 
 class Events {
@@ -44,21 +44,31 @@ private:
 	vector<string> journal_raw;
 
 	vector<double> timeStamps, lengths;
-	vector<string> msgs, ord_tags;
-	set<string> tags;
+	vector<string> projects, ord_projects;
+	set<string> projSet;
 
 	double ts_start, ts_end;
 	vector<double > ts_dates;
 	map< string, vector<double> > ts;
 
+	map<string, vector<pair<string, double> > > tagged_lines;
+
 	map< pair<string, double>, double > m;
 
-	string active_tag;
+	string active_proj;
 public:
 
+	Events() {
+		ts_start=0.; ts_end=0.;
+	};
+
+	const string& activeProj() const {
+		return active_proj;
+	}
+
 	bool close(const string& file) {
-		if( active_tag=="nothing") {
-			printf("ERROR: no tag is active.\n");
+		if( active_proj==NOTHING) {
+			printf("ERROR: no project is active.\n");
 			return false;
 		}
 		FILE* out;
@@ -66,11 +76,9 @@ public:
 
 		char buf[500];
 		double n=DTime::now();
-		snprintf(buf, 500, "%04d-%02d-%02d %02d:%02d|nothing\n", DTime::getYear(n), DTime::getMonth(n), DTime::getDay(n),
-				DTime::getHour(n), DTime::getMinute(n) );
-		string new_line=buf;
+		snprintf(buf, 500, "%.6f\n", n);
 
-		if( fprintf(out, "%s", new_line.c_str()) <0) { fclose(out); return false; }
+		if( fprintf(out, "%s", buf) <0) { fclose(out); return false; }
 		fclose(out);
 
 		printf("[Adding the closing tag]\n");
@@ -78,11 +86,11 @@ public:
 	}
 
 	bool add(const string& file, const vector<string>& args) {
-		if( active_tag==args[0] ) {
+		if( active_proj==args[0] ) {
 			printf("[Tag already active]\n");
 			return false;
 		}
-		if( args[0]=="nothing" ){
+		if( args[0]==NOTHING ){
 			printf("ERROR: This tag name is reserved.\n");
 			return false;
 		}
@@ -92,8 +100,7 @@ public:
 
 		char buf[500];
 		double n=DTime::now();
-		snprintf(buf, 500, "%04d-%02d-%02d %02d:%02d|", DTime::getYear(n), DTime::getMonth(n), DTime::getDay(n),
-				DTime::getHour(n), DTime::getMinute(n) );
+		snprintf(buf, 500, "%.6f ", n );
 		string new_line=buf;
 		new_line += args[0]+ "\n";
 
@@ -104,7 +111,7 @@ public:
 		return true;
 	}
 
-	const string& activeTag() { return active_tag; }
+	const string& activeTag() { return active_proj; }
 
 	void readJournal(const string& file) {
 		journal_file=file;
@@ -120,16 +127,13 @@ public:
 		double prevStamp=0.;
 		for(auto i=0; i<journal_raw.size(); i++ ) {
 			vector<string> fields;
-			fields = Io::s2vs(journal_raw[i], "|");
+			fields = Io::s2vs(journal_raw[i], " ");
 
-			if( fields.size() <2 ) {
-				printf("# WARNING: Ignoring the line: %s\n",journal_raw[i].c_str());
-				continue;
-			}
+			if( fields.size() == 0 ) { continue; }
 
 			double d;
-			if( !DTime::fromString(fields[0], d) ) {
-				printf("# WARNING: Ignoring the line: %s\n",journal_raw[i].c_str());
+			if( !Io::s2d_(d, fields[0]) ) {
+				printf("# WARNING: Malformed journal line: %s\n",journal_raw[i].c_str());
 				continue;
 			}
 			if( d<prevStamp ) {
@@ -137,14 +141,31 @@ public:
 				continue;
 			}
 
-			string tag=fields[1];
+			string proj=NOTHING, note="";
+			bool tagged=false;
+			for( auto j=1; j<fields.size(); j++) {
+				if( fields[j].size()>0) {
+					if( fields[j][0]=='#' ) tagged=true;
+					if( fields[j][0]=='+' ) {
+						if( proj== NOTHING) {
+							proj= fields[j].substr(1);
+						} else {
+							printf("# WARNING: Malformed journal line: %s\n",journal_raw[i].c_str());
+						}
+					}
+					note += fields[j] + " ";
+				}
+			}
+			if( tagged && proj!= NOTHING ) {
+				tagged_lines[proj].push_back( pair<string, double>(note, d));
+			}
 
 			timeStamps.push_back( d );
 			lengths.push_back(0.);
-			msgs.push_back( tag  );
-			tags.insert( tag );
+			projects.push_back( proj  );
+			projSet.insert( proj );
 			prevStamp=d;
-			active_tag=tag;
+			active_proj=proj;
 		}
 
 		for(auto i=0; i<timeStamps.size()-1; i++) {
@@ -154,7 +175,7 @@ public:
 		lengths[lengths.size()-1] = DTime::lenInDays( timeStamps[ timeStamps.size()-1  ], DTime::now() );
 
 		for(auto i=0; i<timeStamps.size(); i++) {
-			pair<string,double> key( msgs[i], floor(timeStamps[i]) );
+			pair<string,double> key( projects[i], floor(timeStamps[i]) );
 			if( m.find(key)!= m.end() ) {
 				m[key] += lengths[i];
 			} else {
@@ -162,8 +183,8 @@ public:
 			}
 		}
 
-		for(auto it=tags.begin(); it!=tags.end(); it++) {
-			ord_tags.push_back(*it);
+		for(auto it=projSet.begin(); it!=projSet.end(); it++) {
+			ord_projects.push_back(*it);
 		}
 
 		ts_start = timeStamps[0];
@@ -171,15 +192,27 @@ public:
 
 		for(double d= floor(ts_start); d<=ts_end; d=DTime::nextDay(d) ) {
 			ts_dates.push_back(d);
-			for(auto i=0; i<ord_tags.size(); i++) {
-				double l= 24.*m[ pair<string,double>(ord_tags[i], d) ];
-				ts[ ord_tags[i] ].push_back(l);
+			for(auto i=0; i<ord_projects.size(); i++) {
+				double l= 24.*m[ pair<string,double>(ord_projects[i], d) ];
+				ts[ ord_projects[i] ].push_back(l);
 			}
 		}
 	}
 
+	void printNotesActive() {
+		if( active_proj!= NOTHING ) {
+			printNotes(active_proj);
+		}
+	}
+
+	void printNotes(const string& proj) {
+		for(auto i=tagged_lines[proj].begin(); i!=tagged_lines[proj].end(); i++) {
+			printf(">> (%0.6f) %s\n", (*i).second ,(*i).first.c_str());
+		}
+	}
+
 	double queryTag(const string& tag) {
-		if( find(ord_tags.begin(), ord_tags.end(), tag ) == ord_tags.end() ) {
+		if( find(ord_projects.begin(), ord_projects.end(), tag ) == ord_projects.end() ) {
 			printf("# ERROR: Tag '%s' not found in journal.\n", tag.c_str());
 			return -1.;
 		} else {
@@ -194,12 +227,12 @@ public:
 
 	void printTimeSeries() {
 		printf("#date ");
-		for(auto k=0; k<ord_tags.size(); k++) { printf("%s ", ord_tags[k].c_str());  }
+		for(auto k=0; k<ord_projects.size(); k++) { printf("%s ", ord_projects[k].c_str());  }
 		printf("\n");
 		for(auto i=0; i<ts_dates.size(); i++) {
 			printf("%.0f ", ts_dates[i]);
-			for(auto k=0; k<ord_tags.size(); k++) {
-				printf("%f ", ts[ord_tags[k]][i]);
+			for(auto k=0; k<ord_projects.size(); k++) {
+				printf("%f ", ts[ord_projects[k]][i]);
 			}
 			printf("\n");
 		}
@@ -210,7 +243,7 @@ public:
 
 		double total=0.;
 		for(auto it=ts.begin(); it!=ts.end(); it++ ) {
-			if( it->first != "nothing") {
+			if( it->first != NOTHING) {
 				double h = it->second[it->second.size()-1];
 				if( h>0.001 ) {
 					tags.push_back( it->first );
@@ -230,7 +263,7 @@ public:
 
 		double total=0.;
 		for(auto it=ts.begin(); it!=ts.end(); it++ ) {
-			if( it->first != "nothing") {
+			if( it->first != NOTHING) {
 				double h=0.;
 				for(int k=max(0, (int)(it->second.size()-N)); k< it->second.size(); k++) {
 					h += it->second[k];
@@ -251,6 +284,12 @@ public:
 	void printTail() {
 		printf("# tail -n 7 %s\n", journal_file.c_str());
 		for(auto i=max((int)0, (int)(journal_raw.size()-7)); i<(int)journal_raw.size(); i++) printf("%s\n", journal_raw[i].c_str());
+	}
+
+	void printActive() {
+		if( active_proj!= NOTHING ) {
+			printf("[Active project] %s\n", active_proj.c_str());
+		}
 	}
 };
 
