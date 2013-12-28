@@ -5,7 +5,7 @@
 #include <cmath>
 #include "io.h"
 
-
+#include "catch.hpp"
 
 bool DTime::fromString(const string& s, double& d) {
 	if( s.length()< 16 ) return false;
@@ -211,11 +211,9 @@ double DTime::now() {
 			ti->tm_mday + 100.*(ti->tm_mon+1.) + 10000.*ti->tm_year + 19000000.;
 }
 
-void DTime::test() {
-	double d;
 
-	d=20131316.2466; printf("normalizing: %f -> %f\n", d, normalize(d));
-	d=20131316.235959; printf("normalizing: %f -> %f\n", d, normalize(d));
-	d=20131316.2359; printf("normalizing: %f -> %f\n", d, normalize(d));
-	d=20131316.2859; printf("normalizing: %f -> %f\n", d, normalize(d));
+TEST_CASE( "Normalizations", "[DTime]") {
+	REQUIRE( DTime::normalize(20131316.2466) == 20140117.0106);
+	REQUIRE( DTime::normalize(20131316.235959) == 20140116.235959);
 }
+

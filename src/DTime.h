@@ -38,7 +38,6 @@ public:
 	static int weekDay(int t);
 
 	static double now();
-	static void test();
 };
 
 
