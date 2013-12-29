@@ -25,6 +25,12 @@ private:
 	string journal_file;
 	vector<string> journal_raw;
 
+	vector<double> time_vec, ref_vec, tag_duration_vec;
+	vector<int> tag_no_vec, id_vec;
+	vector<string> proj_vec, line_vec;
+	map< double, int> line_no;
+	map< int, int> id_to_line_no;
+
 	vector<double> len_vec;
 	vector<string> ord_projects;
 	set<string> proj_set;
@@ -57,13 +63,17 @@ public:
 	void reset();
 	void refreshJournal();
 
-	vector<string> getNotes(const string& proj) {
-		vector<string> notes;
-		for(auto i=tagged_lines[proj].begin(); i!=tagged_lines[proj].end(); i++) {
-			notes.push_back((*i).first);
-//			printf(">> (%0.6f) %s\n", (*i).second ,(*i).first.c_str());
+	void getNotes(const string& proj, vector<int>& id, vector<string>& notes) {
+		for(auto i=0; i<time_vec.size(); i++) {
+			if( proj_vec[i]==proj && tag_no_vec[i]>0 ) {
+				id.push_back( id_vec[i] );
+				notes.push_back( line_vec[i] );
+			}
 		}
-		return notes;
+//		for(auto i=tagged_lines[proj].begin(); i!=tagged_lines[proj].end(); i++) {
+//			notes.push_back((*i).first);
+//			id.push_back(0);
+//		}
 	}
 
 	const string getLastLine() {
@@ -74,7 +84,9 @@ public:
 		}
 	}
 
-	vector<string> getActiveNotes() { return getNotes(active_proj); }
+	void getActiveNotes(vector<int>& id, vector<string>& notes) {
+		getNotes(active_proj, id, notes);
+	}
 
 	double queryTag(const string&);
 
@@ -132,6 +144,19 @@ public:
 		printf("[%2d days  ]  total %.1f  ", N, total);
 		for(auto i=0; i<tags.size(); i++) printf("%s %.2f  ", tags[i].c_str(), hours[i]);
 		printf("\n");
+	}
+
+	bool kill(int id, string& killed_line) {
+		if( id_to_line_no.find(id)!= id_to_line_no.end() ) {
+			killed_line=line_vec[ id_to_line_no[id] ];
+			char buf[50];
+			snprintf(buf, 50, "%.6f %c%s %c%.6f", now, PROJ_CHAR, active_proj.c_str(), REF_CHAR, time_vec[ id_to_line_no[id] ]);
+			journal_raw.push_back(buf);
+			refreshJournal();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 };

@@ -53,10 +53,10 @@ public:
 		}
 	}
 
-	void printActiveNotes(const string& proj , const vector<string>& notes) {
+	void printActiveNotes(const string& proj, const vector<int>& id ,const vector<string>& notes) {
 		printf("%s[Active project]%s %s\n", GREEN, RESET, proj.c_str());
 		for(auto i=0; i<notes.size(); i++) {
-			printf("[%d] ", i);
+			printf("[%d] ", id[i]);
 			vector<string> words;
 			words = Io::s2vs(notes[i], " ");
 			for(const auto& w : words ) {
@@ -72,6 +72,31 @@ public:
 		}
 	}
 
+	void printLine(const string& line) {
+		vector<string> words;
+		words = Io::s2vs(line, " ");
+		for(const auto& w : words ) {
+			if( w[0]== TAG_CHAR ) {
+				printf("%s%s%s ", BLUE, w.c_str(), RESET);
+				continue;
+			}
+			if( w[0]== PROJ_CHAR ) {
+				printf("%s%s%s ", GREEN, w.c_str(), RESET);
+				continue;
+			}
+			if( w[0]== REF_CHAR ) {
+				printf("%s%s%s ", RED, w.c_str(), RESET);
+				continue;
+			}
+			printf("%s ", w.c_str());
+		}
+	}
+
+	void kill(const string& killed_line) {
+		printf("%s[Task killed]%s ", RED, RESET);
+		printLine(killed_line);
+		printf("\n");
+	}
 
 
 };

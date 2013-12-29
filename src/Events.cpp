@@ -6,7 +6,7 @@
 bool Events::addEntry(const string& e) {
 	if( e.length()==0 ) {
 		char buf[500];
-		snprintf(buf, 500, "%.6f ", DTime::now());
+		snprintf(buf, 500, "%.6f ", now);
 		journal_raw.push_back( buf );
 		refreshJournal();
 		return true;
@@ -17,9 +17,9 @@ bool Events::addEntry(const string& e) {
 
 	if( words.size()==1 ) {
 		if( words[0].length()>0 ) {
-			if( words[0][0]!=PROJ_CHAR && words[0][0]!= TAG_CHAR) {
+			if( words[0][0]!=PROJ_CHAR && words[0][0]!= TAG_CHAR && words[0][0]!= REF_CHAR) {
 				char buf[500];
-				snprintf(buf, 500, "%.6f %s", DTime::now(), (PROJ_CHAR + words[0]).c_str() );
+				snprintf(buf, 500, "%.6f %s", now, (PROJ_CHAR + words[0]).c_str() );
 				journal_raw.push_back( buf );
 				refreshJournal();
 				return true;
@@ -31,7 +31,7 @@ bool Events::addEntry(const string& e) {
 
 	string proj="";
 	for(auto i=0; i<words.size(); i++ ) {
-		if( words[i].length()==1 && ( words[i][0]==TAG_CHAR || words[i][0]==PROJ_CHAR )) {
+		if( words[i].length()==1 && ( words[i][0]==TAG_CHAR || words[i][0]==PROJ_CHAR || words[i][0]==REF_CHAR )) {
 			msg.error("Illegal use of special characters.");
 			return false;
 		}
@@ -58,7 +58,7 @@ bool Events::addEntry(const string& e) {
 	}
 
 	char buf[500];
-	snprintf(buf, 500, "%.6f %s", DTime::now(), e.c_str() );
+	snprintf(buf, 500, "%.6f %s", now, e.c_str() );
 	journal_raw.push_back( buf );
 
 	refreshJournal();
@@ -71,15 +71,23 @@ void Events::readJournal(const vector<string>& j) {
 }
 
 void Events::reset() {
-//	timeStamps.clear();
+	time_vec.clear();
+	ref_vec.clear();
+	tag_duration_vec.clear();
+
+	tag_no_vec.clear();
+	id_vec.clear();
+	proj_vec.clear();
+	line_vec.clear();
+
+	line_no.clear();
+	id_to_line_no.clear();
+
 	len_vec.clear();
-//	projects.clear();
 	ord_projects.clear();
 	proj_set.clear();
-
 	ts_dates.clear();
 	ts.clear();
-
 	tagged_lines.clear();
 	proj_day_duration.clear();
 }
@@ -90,11 +98,6 @@ void Events::refreshJournal() {
 		msg.info("Journal file is empty.");
 		throw 0;
 	}
-
-	vector<double> time_vec, ref_vec, tag_duration_vec;
-	vector<int> tag_no_vec;
-	vector<string> proj_vec, line_vec;
-	map< double, int> line_no;
 
 	double prevStamp=0.;
 	for(auto i=0; i<journal_raw.size(); i++) {
@@ -164,6 +167,7 @@ void Events::refreshJournal() {
 		if( ref_no>1  ) err=true;
 		if( err) continue;
 
+		id_vec.push_back(0);
 		time_vec.push_back(time);
 		ref_vec.push_back(ref);
 		proj_vec.push_back(proj);
@@ -184,15 +188,19 @@ void Events::refreshJournal() {
 		active_proj=proj;
 	}
 
+	int m=1;
 	for(auto i=0; i<time_vec.size(); i++) {
 		if( tag_no_vec[i] > 0) {
 			tagged_lines[ proj_vec[i] ].push_back( pair<string, double>(line_vec[i], time_vec[i]));
+			id_to_line_no[m] = i;
+			id_vec[i]=m;
+			m++;
 		}
 	}
 
-	for(auto i=0; i<time_vec.size(); i++) {
-		printf("%d: %f  %15s  ref %f  tag_no %d  tag_dur %f  %s\n", i, time_vec[i], proj_vec[i].c_str(), ref_vec[i], tag_no_vec[i], tag_duration_vec[i], line_vec[i].c_str());
-	}
+//	for(auto i=0; i<time_vec.size(); i++) {
+//		printf("%d: %f  %15s  ref %f  tag_no %d  tag_dur %f  %s\n", i, time_vec[i], proj_vec[i].c_str(), ref_vec[i], tag_no_vec[i], tag_duration_vec[i], line_vec[i].c_str());
+//	}
 
 	for(auto i=0; i<time_vec.size()-1; i++) {
 		len_vec[i]=DTime::lenInDays(time_vec[i], time_vec[i+1]);

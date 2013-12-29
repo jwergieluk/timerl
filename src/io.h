@@ -7,6 +7,11 @@
 #include <vector>
 #include <cstdio>
 
+#include <cstdlib>
+#include <cstdio>
+#include <climits>
+#include <cerrno>
+
 using namespace std;
 
 
@@ -91,6 +96,28 @@ public:
 		return ret;
 	}
 
+	static bool s2i(int& ret, const string& s) {
+		char *pEnd;
+		string buf=trim(s);
+		if( buf.size()==0 ) return false;
+
+		// based on strtol man page
+        errno = 0;    /* To distinguish success/failure after call */
+        long val=strtol(buf.c_str(), &pEnd, 10);
+
+        /* Check for various possible errors */
+
+        if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0)) { return false; }
+        if (pEnd == buf.c_str()) { return false; }
+
+        /* If we got here, strtol() successfully parsed a number */
+        if( val < INT_MIN || INT_MAX < val) return false;
+
+        ret=(int)val;
+
+
+        return true;
+	}
 
 };
 

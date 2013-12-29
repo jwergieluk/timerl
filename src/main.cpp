@@ -33,7 +33,9 @@ int main(int ac, char** av) {
 			e.tagsForLastNDays(7);
 			e.tagsForLastNDays(30);
 			if( !e.closed() ) {
-				m.printActiveNotes( e.activeProj(), e.getActiveNotes() );
+				vector<int> id; vector<string> notes;
+				e.getActiveNotes(id, notes);
+				m.printActiveNotes( e.activeProj(), id, notes );
 			}
 		}
 
@@ -70,7 +72,7 @@ int main(int ac, char** av) {
 			}
 		}
 
-		if( c.is("n") && c.getArgsVs().size()>0 ) {
+		if( c.is("n") && c.getArgsVs().size()>0 ) { // TODO no refs in notes and adds!
 			if( c.getArgsVs().size()==0 ) {
 				m.info("Skipping empty note.");
 				throw 0;
@@ -85,6 +87,26 @@ int main(int ac, char** av) {
 			if( !j.addEntry( e.getLastLine() ) ) {  m.error("Writing to journal file."); throw 255; }
 		}
 
+		if( c.is("k") ) {
+			if( c.getArgs().length()==0 ) {
+				m.error("Line id not specified.");
+				throw 255;
+			}
+			int id; string killed_line;
+			if( !Io::s2i(id, c.getArgs()) ) {
+				m.error("Unable to parse the id.");
+				throw 255;
+			}
+			if( !e.kill(id, killed_line) ) {
+				m.error("Line not found.");
+				throw 255;
+			}
+			if( !j.addEntry( e.getLastLine() ) ) {
+				m.error("Writing to journal file.");
+				throw 255;
+			}
+			m.kill(killed_line);
+		}
 
 		if( c.is("t")) j.printTail();
 
