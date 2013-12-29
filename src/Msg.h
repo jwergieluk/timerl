@@ -3,9 +3,11 @@
 #ifndef MSG_H_
 #define MSG_H_
 
+#include "io.h"
+#include "config.h"
 #include <string>
-using namespace std;
 
+using namespace std;
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -24,8 +26,6 @@ using namespace std;
 #define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
-
-
 
 
 class Msg {
@@ -52,6 +52,26 @@ public:
 			printf("%sINFO%s: %s\n", BOLDGREEN, RESET, err.c_str());
 		}
 	}
+
+	void printActiveNotes(const string& proj , const vector<string>& notes) {
+		printf("%s[Active project]%s %s\n", GREEN, RESET, proj.c_str());
+		for(auto i=0; i<notes.size(); i++) {
+			printf("[%d] ", i);
+			vector<string> words;
+			words = Io::s2vs(notes[i], " ");
+			for(const auto& w : words ) {
+				if( w != PROJ_CHAR + proj ) {
+					if( w[0]== TAG_CHAR ) {
+						printf("%s%s%s ", BLUE, w.c_str(), RESET);
+					} else {
+						printf("%s ", w.c_str());
+					}
+				}
+			}
+			printf("\n");
+		}
+	}
+
 
 
 };

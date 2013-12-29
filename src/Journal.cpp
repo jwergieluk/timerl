@@ -17,22 +17,7 @@ bool Journal::addEntry(const string& args) {
 	if ((out = fopen( jfile.c_str(), "a"))==NULL) return false;
 
 	char buf[500];
-	double n=DTime::now();
-	snprintf(buf, 500, "%.6f %s\n", n, args.c_str() );
-	if( fprintf(out, "%s", buf) <0) { fclose(out); return false; }
-	fclose(out);
-
-	return true;
-}
-
-bool Journal::closeProject() {
-	FILE* out;
-	if ((out = fopen( jfile.c_str(), "a"))==NULL) return false;
-
-	char buf[50];
-	double n=DTime::now();
-	snprintf(buf, 50, "%.6f\n", n);
-
+	snprintf(buf, 500, "%s\n", args.c_str() );
 	if( fprintf(out, "%s", buf) <0) { fclose(out); return false; }
 	fclose(out);
 

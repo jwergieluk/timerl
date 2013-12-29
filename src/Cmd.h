@@ -27,6 +27,8 @@ public:
 				args_str = a;
 			}
 		}
+//		printf("cmd: %s. args_str: %s.\n", cmd.c_str(), args_str.c_str());
+//		for(auto i=0; i<args.size(); i++ ) { printf("args: %d %s\n", i, args[i].c_str());  }
 	}
 
 	bool is(const string& c) {

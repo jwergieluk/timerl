@@ -14,7 +14,7 @@
 #include "io.h"
 #include "DTime.h"
 
-#define NOTHING "__NOTHING__"
+#include "config.h"
 
 using namespace std;
 
@@ -25,44 +25,56 @@ private:
 	string journal_file;
 	vector<string> journal_raw;
 
-	vector<double> timeStamps, lengths;
-	vector<string> projects, ord_projects;
-	set<string> projSet;
+	vector<double> len_vec;
+	vector<string> ord_projects;
+	set<string> proj_set;
 
-	double ts_start, ts_end;
+	double ts_start, ts_end, now;
 	vector<double > ts_dates;
 	map< string, vector<double> > ts;
 
 	map<string, vector<pair<string, double> > > tagged_lines;
-
-	map< pair<string, double>, double > m;
+	map< pair<string, double>, double > proj_day_duration;
 
 	string active_proj;
 public:
 
 	Events(Msg& m): msg(m) {
 		ts_start=0.; ts_end=0.;
+		now=DTime::now();
 	};
 
-	const string& activeProj() const { return active_proj; }
+	string activeProj() const {
+		if( active_proj== NOTHING ) return "";
+		return active_proj;
+	}
 
 	bool addEntry(const string&);
 
 	bool closed() { return active_proj==NOTHING; }
 
 	void readJournal(const vector<string>&);
+	void reset();
+	void refreshJournal();
 
-	void printNotesActive() {
-		if( active_proj!= NOTHING ) {
-			printNotes(active_proj);
-		}
-	}
-
-	void printNotes(const string& proj) {
+	vector<string> getNotes(const string& proj) {
+		vector<string> notes;
 		for(auto i=tagged_lines[proj].begin(); i!=tagged_lines[proj].end(); i++) {
-			printf(">> (%0.6f) %s\n", (*i).second ,(*i).first.c_str());
+			notes.push_back((*i).first);
+//			printf(">> (%0.6f) %s\n", (*i).second ,(*i).first.c_str());
+		}
+		return notes;
+	}
+
+	const string getLastLine() {
+		if( journal_raw.size()==0 ) {
+			return "";
+		} else {
+			return journal_raw[ journal_raw.size()-1];
 		}
 	}
+
+	vector<string> getActiveNotes() { return getNotes(active_proj); }
 
 	double queryTag(const string&);
 
@@ -122,11 +134,6 @@ public:
 		printf("\n");
 	}
 
-	void printActive() {
-		if( active_proj!= NOTHING ) {
-			printf("[Active project] %s\n", active_proj.c_str());
-		}
-	}
 };
 
 
