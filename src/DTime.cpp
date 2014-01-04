@@ -211,6 +211,12 @@ double DTime::now() {
 			ti->tm_mday + 100.*(ti->tm_mon+1.) + 10000.*ti->tm_year + 19000000.;
 }
 
+string DTime::hoursToStr(double t) {
+	char buf[500];
+	snprintf(buf, 500, "%.0f:%02.0f", floor(t), (t-floor(t))*60  );
+	return string(buf);
+}
+
 
 TEST_CASE( "Normalizations", "[DTime]") {
 	REQUIRE( DTime::normalize(20131316.2466) == 20140117.0106);

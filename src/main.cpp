@@ -29,12 +29,18 @@ int main(int ac, char** av) {
 		e.readJournal(j.getEntries());
 
 		if( c.is("")  ) {
-			e.tagsForToday();
-			e.tagsForLastNDays(7);
-			e.tagsForLastNDays(30);
+			vector<string> tags; vector<double> hours;
+			printf("Project durations:\n");
+			e.tagsForLastNDays(1, tags, hours);
+			m.printTags(1, tags, hours);
+			e.tagsForLastNDays(7, tags, hours);
+			m.printTags(7, tags, hours);
+			e.tagsForLastNDays(30, tags, hours);
+			m.printTags(30, tags, hours);
 			if( !e.closed() ) {
 				vector<int> id; vector<string> notes;
 				e.getActiveNotes(id, notes);
+				m.par();
 				m.printActiveNotes( e.activeProj(), id, notes );
 			}
 		}
@@ -42,6 +48,9 @@ int main(int ac, char** av) {
 
 		if( c.is("ts") ) e.printTimeSeries();
 		if( c.is("q") ) {
+			vector<double> dates, hours;
+			e.getTs( c.getArgs(), dates, hours );
+			m.printTs(dates, hours);
 			e.queryTag( c.getArgs() );
 		}
 
@@ -86,6 +95,11 @@ int main(int ac, char** av) {
 			e.addEntry(active_proj);
 			if( !j.addEntry( e.getLastLine() ) ) {  m.error("Writing to journal file."); throw 255; }
 		}
+		if( c.is("n") && c.getArgsVs().size()==0 ) {
+			vector<int> id; vector<string> notes;
+			e.getNotes(id, notes);
+			m.printNotes(id, notes );
+		}
 
 		if( c.is("k") ) {
 			if( c.getArgs().length()==0 ) {
@@ -109,6 +123,11 @@ int main(int ac, char** av) {
 		}
 
 		if( c.is("t")) j.printTail();
+
+		if( c.is("u")) {
+//			string erased_line;
+//			e.undo(erased_line);
+		}
 
 		if( c.is("test") ) {
 			Catch::Session s;

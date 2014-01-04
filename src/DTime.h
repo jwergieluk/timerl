@@ -38,6 +38,8 @@ public:
 	static int weekDay(int t);
 
 	static double now();
+
+	static string hoursToStr(double t);
 };
 
 

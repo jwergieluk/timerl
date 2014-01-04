@@ -3,6 +3,7 @@
 #include <cstdio>
 #include "io.h"
 #include "DTime.h"
+#include "Msg.h"
 
 #include "Journal.h"
 
@@ -25,6 +26,10 @@ bool Journal::addEntry(const string& args) {
 }
 
 void Journal::printTail() {
+	Msg m;
 	printf("# tail -n 7 %s\n", jfile.c_str());
-	for(auto i=max((int)0, (int)(entries.size()-7)); i<(int)entries.size(); i++) printf("%s\n", entries[i].c_str());
+	for(auto i=max((int)0, (int)(entries.size()-7)); i<(int)entries.size(); i++) {
+		m.printLine(entries[i]);
+		printf("\n");
+	}
 }

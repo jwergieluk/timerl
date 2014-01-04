@@ -247,7 +247,34 @@ double Events::queryTag(const string& tag) {
 	}
 }
 
+void Events::tagsForLastNDays(int N, vector<string>& tags, vector<double>& hours) {
+	tags.clear(); hours.clear();
+	for(auto it=ts.begin(); it!=ts.end(); it++ ) {
+		if( it->first != NOTHING) {
+			double h=0.;
+			for(int k=max(0, (int)(it->second.size()-N)); k< it->second.size(); k++) {
+				h += it->second[k];
+			}
+			if( h>0.001 ) {
+				tags.push_back( it->first );
+				hours.push_back( h );
+			}
+		}
+	}
+}
 
+bool Events::kill(int id, string& killed_line) {
+	if( id_to_line_no.find(id)!= id_to_line_no.end() ) {
+		killed_line=line_vec[ id_to_line_no[id] ];
+		char buf[50];
+		snprintf(buf, 50, "%.6f %c%s %c%.6f", now, PROJ_CHAR, active_proj.c_str(), REF_CHAR, time_vec[ id_to_line_no[id] ]);
+		journal_raw.push_back(buf);
+		refreshJournal();
+		return true;
+	} else {
+		return false;
+	}
+}
 
 
 

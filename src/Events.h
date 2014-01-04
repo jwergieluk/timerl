@@ -70,10 +70,15 @@ public:
 				notes.push_back( line_vec[i] );
 			}
 		}
-//		for(auto i=tagged_lines[proj].begin(); i!=tagged_lines[proj].end(); i++) {
-//			notes.push_back((*i).first);
-//			id.push_back(0);
-//		}
+	}
+
+	void getNotes(vector<int>& id, vector<string>& notes) {
+		for(auto i=0; i<time_vec.size(); i++) {
+			if( tag_no_vec[i]>0 ) {
+				id.push_back( id_vec[i] );
+				notes.push_back( line_vec[i] );
+			}
+		}
 	}
 
 	const string getLastLine() {
@@ -103,61 +108,23 @@ public:
 		}
 	}
 
-	void tagsForToday() {
-		vector<string> tags; vector<double> hours;
-
-		double total=0.;
-		for(auto it=ts.begin(); it!=ts.end(); it++ ) {
-			if( it->first != NOTHING) {
-				double h = it->second[it->second.size()-1];
-				if( h>0.001 ) {
-					tags.push_back( it->first );
-					hours.push_back( h );
-					total += h;
-				}
-			}
-		}
-
-		printf("[today    ]  total %.1f  ", total);
-		for(auto i=0; i<tags.size(); i++) printf("%s %.2f  ", tags[i].c_str(), hours[i]);
-		printf("\n");
+	bool getTs(const string& proj, vector<double>& dates, vector<double>& hours) {
+		if( proj_set.find(proj)== proj_set.end() ) return false;
+		dates = ts_dates;
+		hours = ts[proj];
+		return true;
 	}
 
-	void tagsForLastNDays(int N) {
-		vector<string> tags; vector<double> hours;
+	void tagsForLastNDays(int N, vector<string>& tags, vector<double>& hours);
 
-		double total=0.;
-		for(auto it=ts.begin(); it!=ts.end(); it++ ) {
-			if( it->first != NOTHING) {
-				double h=0.;
-				for(int k=max(0, (int)(it->second.size()-N)); k< it->second.size(); k++) {
-					h += it->second[k];
-				}
-				if( h>0.001 ) {
-					tags.push_back( it->first );
-					hours.push_back( h );
-					total += h;
-				}
-			}
-		}
+	bool kill(int id, string& killed_line);
 
-		printf("[%2d days  ]  total %.1f  ", N, total);
-		for(auto i=0; i<tags.size(); i++) printf("%s %.2f  ", tags[i].c_str(), hours[i]);
-		printf("\n");
-	}
-
-	bool kill(int id, string& killed_line) {
-		if( id_to_line_no.find(id)!= id_to_line_no.end() ) {
-			killed_line=line_vec[ id_to_line_no[id] ];
-			char buf[50];
-			snprintf(buf, 50, "%.6f %c%s %c%.6f", now, PROJ_CHAR, active_proj.c_str(), REF_CHAR, time_vec[ id_to_line_no[id] ]);
-			journal_raw.push_back(buf);
-			refreshJournal();
-			return true;
-		} else {
-			return false;
-		}
-	}
+//	bool undo(string& erased_line) {
+//		if( journal_raw.size()==0) return false;
+//		erased_line = journal_raw.pop_back();
+//		refreshJournal();
+//		return true;
+//	}
 
 };
 

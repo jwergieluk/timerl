@@ -3,6 +3,7 @@
 #ifndef MSG_H_
 #define MSG_H_
 
+#include "DTime.h"
 #include "io.h"
 #include "config.h"
 #include <string>
@@ -53,21 +54,31 @@ public:
 		}
 	}
 
+	void par() { printf("\n"); }
+
+	void printTags(int N, const vector<string>& tags, const vector<double>& hours) {
+		double total=0.;
+		for(auto i=0; i<hours.size(); i++) total+=hours[i];
+		printf("D%02d  %s%s%s  ", N, BOLDWHITE, DTime::hoursToStr(total).c_str(), RESET );
+		for(auto i=0; i<tags.size(); i++) printf("%s %s  ", tags[i].c_str(), DTime::hoursToStr(hours[i]).c_str() );
+		printf("\n");
+	}
+
 	void printActiveNotes(const string& proj, const vector<int>& id ,const vector<string>& notes) {
-		printf("%s[Active project]%s %s\n", GREEN, RESET, proj.c_str());
+//		printf("%s[Active project]%s %s\n", GREEN, RESET, proj.c_str());
+		printf("Tagged lines for the active project %s+%s%s\n", GREEN, proj.c_str(), RESET);
 		for(auto i=0; i<notes.size(); i++) {
 			printf("[%d] ", id[i]);
-			vector<string> words;
-			words = Io::s2vs(notes[i], " ");
-			for(const auto& w : words ) {
-				if( w != PROJ_CHAR + proj ) {
-					if( w[0]== TAG_CHAR ) {
-						printf("%s%s%s ", BLUE, w.c_str(), RESET);
-					} else {
-						printf("%s ", w.c_str());
-					}
-				}
-			}
+			printLine(notes[i]);
+			printf("\n");
+		}
+	}
+
+	void printNotes(const vector<int>& id ,const vector<string>& notes) {
+		printf("Tagged lines in all projects are\n");
+		for(auto i=0; i<notes.size(); i++) {
+			printf("[%d] ", id[i]);
+			printLine(notes[i]);
 			printf("\n");
 		}
 	}
@@ -98,6 +109,11 @@ public:
 		printf("\n");
 	}
 
+	void printTs(const vector<double>& dates, const vector<double>& hours ) {
+		for(auto i=0; i< dates.size(); i++ ) printf("%.0f %.2f\n", dates[i], hours[i]);
+
+
+	}
 
 };
 
