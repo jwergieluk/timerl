@@ -48,10 +48,10 @@ bool Events::addEntry(const string& e) {
 		return false;
 	}
 
-	if( active_proj==proj ) {
-		msg.error("Project is already active");
-		return false;
-	}
+//	if( active_proj==proj ) {
+//		msg.error("Project is already active");
+//		return false;
+//	}
 	if( proj==NOTHING ){
 		msg.error("This project name is reserved.");
 		return false;
@@ -62,6 +62,7 @@ bool Events::addEntry(const string& e) {
 	journal_raw.push_back( buf );
 
 	refreshJournal();
+	now+=0.000001;   // Add one second to the actual time.
 	return true;
 }
 
@@ -83,12 +84,10 @@ void Events::reset() {
 	line_no.clear();
 	id_to_line_no.clear();
 
-	len_vec.clear();
 	ord_projects.clear();
 	proj_set.clear();
 	ts_dates.clear();
 	ts.clear();
-	tagged_lines.clear();
 	proj_day_duration.clear();
 }
 
@@ -96,7 +95,7 @@ void Events::refreshJournal() {
 	reset();
 	if( journal_raw.size()==0) {
 		msg.info("Journal file is empty.");
-		throw 0;
+		return;
 	}
 
 	double prevStamp=0.;
@@ -191,16 +190,11 @@ void Events::refreshJournal() {
 	int m=1;
 	for(auto i=0; i<time_vec.size(); i++) {
 		if( tag_no_vec[i] > 0) {
-			tagged_lines[ proj_vec[i] ].push_back( pair<string, double>(line_vec[i], time_vec[i]));
 			id_to_line_no[m] = i;
 			id_vec[i]=m;
 			m++;
 		}
 	}
-
-//	for(auto i=0; i<time_vec.size(); i++) {
-//		printf("%d: %f  %15s  ref %f  tag_no %d  tag_dur %f  %s\n", i, time_vec[i], proj_vec[i].c_str(), ref_vec[i], tag_no_vec[i], tag_duration_vec[i], line_vec[i].c_str());
-//	}
 
 	for(auto i=0; i<time_vec.size()-1; i++) {
 		len_vec[i]=DTime::lenInDays(time_vec[i], time_vec[i+1]);
@@ -221,10 +215,7 @@ void Events::refreshJournal() {
 		ord_projects.push_back(*it);
 	}
 
-	ts_start = time_vec[0];
-	ts_end = now;
-
-	for(double d= floor(ts_start); d<=ts_end; d=DTime::nextDay(d) ) {
+	for(double d= floor(time_vec[0]); d<=now; d=DTime::nextDay(d) ) {
 		ts_dates.push_back(d);
 		for(auto i=0; i<ord_projects.size(); i++) {
 			double l= 24.*proj_day_duration[ pair<string,double>(ord_projects[i], d) ];
@@ -273,6 +264,12 @@ bool Events::kill(int id, string& killed_line) {
 		return true;
 	} else {
 		return false;
+	}
+}
+
+void Events::printDebugInfo() {
+	for(auto i=0; i<time_vec.size(); i++) {
+		printf("%d[%d]: %f %10s  len_vec %f  &%f  tag_no %d  tag_dur %f  %s\n", i, id_vec[i], time_vec[i], proj_vec[i].c_str(), len_vec[i], ref_vec[i], tag_no_vec[i], tag_duration_vec[i], line_vec[i].c_str());
 	}
 }
 

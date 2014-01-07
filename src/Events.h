@@ -28,25 +28,25 @@ private:
 	vector<double> time_vec, ref_vec, tag_duration_vec;
 	vector<int> tag_no_vec, id_vec;
 	vector<string> proj_vec, line_vec;
-	map< double, int> line_no;
+	vector<double> len_vec;
+
+	map< double, int> line_no;		// time -> line number
 	map< int, int> id_to_line_no;
 
-	vector<double> len_vec;
 	vector<string> ord_projects;
 	set<string> proj_set;
 
-	double ts_start, ts_end, now;
 	vector<double > ts_dates;
 	map< string, vector<double> > ts;
 
-	map<string, vector<pair<string, double> > > tagged_lines;
 	map< pair<string, double>, double > proj_day_duration;
 
+	double now;
 	string active_proj;
 public:
 
 	Events(Msg& m): msg(m) {
-		ts_start=0.; ts_end=0.;
+//		ts_start=0.; ts_end=0.;
 		now=DTime::now();
 	};
 
@@ -58,6 +58,7 @@ public:
 	bool addEntry(const string&);
 
 	bool closed() { return active_proj==NOTHING; }
+	bool isEmpty() { return journal_raw.size()==0; }
 
 	void readJournal(const vector<string>&);
 	void reset();
@@ -125,6 +126,8 @@ public:
 //		refreshJournal();
 //		return true;
 //	}
+
+	void printDebugInfo();
 
 };
 

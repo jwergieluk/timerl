@@ -6,6 +6,7 @@ using namespace std;
 #include "Msg.h"
 #include "Events.h"
 #include "DTime.h"
+#include "Env.h"
 #include "Cmd.h"
 
 #define CATCH_CONFIG_RUNNER
@@ -15,12 +16,13 @@ int main(int ac, char** av) {
 	try {
 		Cmd c(ac, av);
 
-		string journal_file = "/home/julian/distributed/workspace/timerl/test/1-in-a.txt";
+		// TODO read this from environment
+		string journal_file = "/home/julian/.journal";
 
 		Msg m;
 		Journal j;
 		if( !j.read(journal_file) ) {
-			m.error("ERROR: Unable to read the journal file.");
+			m.error("Unable to read the journal file.");
 			throw 255;
 		}
 
@@ -29,6 +31,12 @@ int main(int ac, char** av) {
 		e.readJournal(j.getEntries());
 
 		if( c.is("")  ) {
+			if( e.isEmpty() ) throw 0;
+			if( !e.closed() ) {
+				printf("Active project is %s+%s%s.\n", GREEN, e.activeProj().c_str(), RESET);
+				printf("  (Use 'a' to deactivate or switch to another project)\n\n");
+			}
+
 			vector<string> tags; vector<double> hours;
 			printf("Project durations:\n");
 			e.tagsForLastNDays(1, tags, hours);
@@ -42,16 +50,24 @@ int main(int ac, char** av) {
 				e.getActiveNotes(id, notes);
 				m.par();
 				m.printActiveNotes( e.activeProj(), id, notes );
+
 			}
 		}
 
+		if( c.is("ts") ) {
+			if( e.isEmpty() ) throw 0;
+			e.printTimeSeries();
+		}
 
-		if( c.is("ts") ) e.printTimeSeries();
-		if( c.is("q") ) {
+		if( c.is("q") && c.getArgsVs().size()==0 ) {
+			m.error("No project name specified.");
+		}
+		if( c.is("q") && c.getArgsVs().size()>0 ) {
+			if( e.isEmpty() ) throw 0;
 			vector<double> dates, hours;
 			e.getTs( c.getArgs(), dates, hours );
-			m.printTs(dates, hours);
-			e.queryTag( c.getArgs() );
+			m.printTs( c.getArgs(), dates, hours);
+//			e.queryTag( c.getArgs() );
 		}
 
 
@@ -60,12 +76,13 @@ int main(int ac, char** av) {
 				m.info("No project currently active.");
 				throw 0;
 			}
+			string prev_active = e.activeProj();
 			e.addEntry("");
 			if( !j.addEntry( e.getLastLine() ) ) {
 				m.error("Writing to journal file.");
 				throw 255;
 			}
-			printf("[Adding the closing tag]\n");
+			printf("Project %s+%s%s deactivated.\n", GREEN, prev_active.c_str() , RESET);
 		}
 
 		if( c.is("a") && c.getArgsVs().size()>0 ) {
@@ -74,18 +91,13 @@ int main(int ac, char** av) {
 					m.error("Writing to journal file.");
 					throw 255;
 				}
-				printf("[Switching project] %s\n", e.activeProj().c_str());
-//				printf("%s[Add]%s %02d:%02d %s\n", BOLDGREEN, RESET,DTime::getHour(DTime::now()), DTime::getMinute(DTime::now()), args[0].c_str());
+				printf("Switching project %s+%s%s.\n", GREEN, e.activeProj().c_str(), RESET);
 			} else {
 				throw 255;
 			}
 		}
 
 		if( c.is("n") && c.getArgsVs().size()>0 ) { // TODO no refs in notes and adds!
-			if( c.getArgsVs().size()==0 ) {
-				m.info("Skipping empty note.");
-				throw 0;
-			}
 			string active_proj=e.activeProj();
 			if( e.addEntry(c.getArgs()) ) {
 				if( !j.addEntry( e.getLastLine() ) ) {  m.error("Writing to journal file."); throw 255; }
@@ -124,14 +136,21 @@ int main(int ac, char** av) {
 
 		if( c.is("t")) j.printTail();
 
-		if( c.is("u")) {
-//			string erased_line;
-//			e.undo(erased_line);
+		if( c.is("e") ) {
+			Env::editJournal(journal_file);
+		}
+
+		if( c.is("debug") ) {
+			e.printDebugInfo();
 		}
 
 		if( c.is("test") ) {
 			Catch::Session s;
 			s.run();
+		}
+
+		if( c.is("h")) {
+			m.printUsage();
 		}
 
 	} catch(int& e) {

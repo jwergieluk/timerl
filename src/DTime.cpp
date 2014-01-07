@@ -213,7 +213,7 @@ double DTime::now() {
 
 string DTime::hoursToStr(double t) {
 	char buf[500];
-	snprintf(buf, 500, "%.0f:%02.0f", floor(t), (t-floor(t))*60  );
+	snprintf(buf, 500, "%.0f:%02.0f", floor(t), floor((t-floor(t))*60)  );
 	return string(buf);
 }
 
