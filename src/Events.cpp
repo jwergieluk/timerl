@@ -1,6 +1,5 @@
 //  copyright (C) 2013-2013 Julian Wergieluk  <julian@wergieluk.com>
 
-#include "catch.hpp"
 #include "Events.h"
 
 bool Events::addEntry(const string& e) {
@@ -274,6 +273,8 @@ void Events::printDebugInfo() {
 }
 
 
+#ifdef UNIT_TESTS
+#include "catch.hpp"
 
 TEST_CASE("Parsing new entries", "[Events]") {
 
@@ -285,9 +286,4 @@ TEST_CASE("Parsing new entries", "[Events]") {
 
 }
 
-
-
-
-
-
-
+#endif

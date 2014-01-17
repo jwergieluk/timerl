@@ -93,10 +93,19 @@ void Msg::kill(const string& killed_line) {
 }
 
 void Msg::printTs(const string& proj, const vector<double>& dates, const vector<double>& hours ) {
-	if( dates.size()< 4 ) {
+	if( dates.size()==0 ) {
 		info("Not enough data collected.");
 		return;
 	}
+
+	double total_hours=0.;
+	for(auto i=0; i<dates.size(); i++) total_hours+=hours[i];
+
+	printf("Summary for the project %s+%s%s.\n", GREEN, proj.c_str(), RESET);
+	printf("Total hours since %d:  %s%s%s.\n", int(dates[0]), BOLDWHITE, DTime::hoursToStr(total_hours).c_str(), RESET);
+
+	if( dates.size()<5 ) return;
+
 	map< pair<int, int>, char > m;
 	int first= max((int)0,(int)(dates.size()-80));
 	int h=0;
@@ -110,7 +119,7 @@ void Msg::printTs(const string& proj, const vector<double>& dates, const vector<
 		if( frac < 1.0 ) { m[ pair<int, int>(y, i) ] = '*'; continue; }
 	}
 
-	printf("Duration graph for the project %s+%s%s\n\n", GREEN, proj.c_str(), RESET);
+	printf("\n");
 	for(auto r=h; r>=0; r-- ) {
 		printf("%2d ", r);
 		for( auto c=first; c<dates.size(); c++) {

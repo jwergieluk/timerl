@@ -9,8 +9,10 @@ using namespace std;
 #include "Env.h"
 #include "Cmd.h"
 
+#ifdef UNIT_TESTS
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
+#endif
 
 int main(int ac, char** av) {
 	try {
@@ -146,10 +148,12 @@ int main(int ac, char** av) {
 			e.printDebugInfo();
 		}
 
+#ifdef UNIT_TESTS
 		if( c.is("test") ) {
 			Catch::Session s;
 			s.run();
 		}
+#endif
 
 		if( c.is("h")) {
 			m.printUsage();
