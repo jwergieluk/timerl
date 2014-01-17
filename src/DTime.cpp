@@ -185,6 +185,10 @@ int DTime::daysBetween(double t0, double t1) {
 	return diff;
 }
 
+int DTime::weekDay(double t) {
+	return weekDay( (int)(floor(t)) );
+}
+
 int DTime::weekDay(int t) {
 	// http://en.wikipedia.org/wiki/Zeller%27s_congruence
 	int y = getYear(t);

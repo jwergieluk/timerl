@@ -98,8 +98,9 @@ void Msg::printTs(const string& proj, const vector<double>& dates, const vector<
 		return;
 	}
 	map< pair<int, int>, char > m;
+	int first= max((int)0,(int)(dates.size()-80));
 	int h=0;
-	for(auto i=0; i< dates.size(); i++ ) {
+	for(auto i=first; i< dates.size(); i++ ) {
 		int y = (int)floor(hours[i]);
 		h = max(h, y);
 		double frac = hours[i]-floor(hours[i]);
@@ -109,10 +110,10 @@ void Msg::printTs(const string& proj, const vector<double>& dates, const vector<
 		if( frac < 1.0 ) { m[ pair<int, int>(y, i) ] = '*'; continue; }
 	}
 
-	printf("Duration graph for project %s\n\n", proj.c_str());
+	printf("Duration graph for the project %s+%s%s\n\n", GREEN, proj.c_str(), RESET);
 	for(auto r=h; r>=0; r-- ) {
 		printf("%2d ", r);
-		for( auto c=0; c<dates.size(); c++) {
+		for( auto c=first; c<dates.size(); c++) {
 			auto key = pair<int, int>(r,c);
 			if( m.find(key) != m.end() ) {
 				printf("%c", m[key]);
@@ -123,14 +124,18 @@ void Msg::printTs(const string& proj, const vector<double>& dates, const vector<
 		printf("%2d\n", r);
 	}
 	printf("   ");
-	for(auto i=0; i<dates.size(); i++ ) {
-		int weekDay= DTime::weekDay((int)floor(dates[i]) );
-		if( weekDay==1 ) { printf("M"); continue; }
+	vector<string> month_names = {"Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	for(auto i=first; i<dates.size(); i++ ) {
+		int day= DTime::getDay(dates[i]);
+		int month = DTime::getMonth(dates[i]);
+		int weekDay= DTime::weekDay(dates[i]);
+		if( day<4) { printf("%c", month_names[month-1][day-1]); continue; }
+		if( weekDay==1 && day>4 ) { printf("M"); continue; }
 		printf(" ");
 	}
 	printf("\n");
 }
 
 void Msg::printUsage() {
-	printf("timerl (c) 2013-2014  Julian Wergieluk\n");
+	printf("timerl (c) 2013-2014, Julian Wergieluk <julian@wergieluk.com>. Some rights reserved.\n");
 }

@@ -41,6 +41,8 @@ int main(int ac, char** av) {
 			printf("Project durations:\n");
 			e.tagsForLastNDays(1, tags, hours);
 			m.printTags(1, tags, hours);
+			e.tagsForLastNDays(2, tags, hours);
+			m.printTags(2, tags, hours);
 			e.tagsForLastNDays(7, tags, hours);
 			m.printTags(7, tags, hours);
 			e.tagsForLastNDays(30, tags, hours);
@@ -91,7 +93,7 @@ int main(int ac, char** av) {
 					m.error("Writing to journal file.");
 					throw 255;
 				}
-				printf("Switching project %s+%s%s.\n", GREEN, e.activeProj().c_str(), RESET);
+				printf("Switching to the project %s+%s%s.\n", GREEN, e.activeProj().c_str(), RESET);
 			} else {
 				throw 255;
 			}

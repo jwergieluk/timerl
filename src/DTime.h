@@ -36,6 +36,7 @@ public:
 	static int daysBetween(double t0, double t1);
 
 	static int weekDay(int t);
+	static int weekDay(double t);
 
 	static double now();
 
