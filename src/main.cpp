@@ -49,13 +49,12 @@ int main(int ac, char** av) {
 			m.printTags(7, tags, hours);
 			e.tagsForLastNDays(30, tags, hours);
 			m.printTags(30, tags, hours);
-			if( !e.closed() ) {
-				vector<int> id; vector<string> notes;
-				e.getActiveNotes(id, notes);
-				m.par();
-				m.printActiveNotes( e.activeProj(), id, notes );
-
-			}
+//			if( !e.closed() ) {
+//				vector<int> id; vector<string> notes;
+//				e.getActiveNotes(id, notes);
+//				m.par();
+//				m.printActiveNotes( e.activeProj(), id, notes );
+//			}
 		}
 
 		if( c.is("ts") ) {
