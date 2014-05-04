@@ -1,4 +1,4 @@
-//  copyright (C) 2013-2013 Julian Wergieluk  <julian@wergieluk.com>
+//  copyright (C) 2013-2014 Julian Wergieluk  <julian@wergieluk.com>
 
 #include "Events.h"
 
@@ -36,7 +36,7 @@ bool Events::addEntry(const string& e) {
 		}
 		if( words[i].length()>1 && words[i][0]==PROJ_CHAR ) {
 			if( proj!="" ) {
-				msg.error("Only one active project at a time allowed.");
+				msg.error("It is not allowed to have two active projects at the same time.");
 				return false;
 			}
 			proj=words[i].substr(1);
@@ -54,6 +54,44 @@ bool Events::addEntry(const string& e) {
 	if( proj==NOTHING ){
 		msg.error("This project name is reserved.");
 		return false;
+	}
+
+	char buf[500];
+	snprintf(buf, 500, "%.6f %s", now, e.c_str() );
+	journal_raw.push_back( buf );
+
+	refreshJournal();
+	now+=0.000001;   // Add one second to the actual time.
+	return true;
+}
+
+bool Events::addNote(const string& e) {
+	vector<string> words;
+	words = Io::s2vs(e, " ");
+	if( words.size()==0) return false;
+
+	string proj="";
+	for(auto i=0; i<words.size(); i++ ) {
+		if( words[i].length()==1 && ( words[i][0]==TAG_CHAR || words[i][0]==PROJ_CHAR || words[i][0]==REF_CHAR )) {
+			msg.error("Illegal use of special characters.");
+			return false;
+		}
+		if( words[i].length()>1 && words[i][0]==PROJ_CHAR ) {
+			if( proj!="" ) {
+				msg.error("It is not allowed to have two active projects at the same time.");
+				return false;
+			}
+			proj=words[i].substr(1);
+		}
+	}
+
+	if( proj==NOTHING ){
+		msg.error("This project name is reserved.");
+		return false;
+	}
+
+	if( active_proj != NOTHING ) {
+		words.push_back(active_proj);
 	}
 
 	char buf[500];
@@ -128,9 +166,11 @@ void Events::refreshJournal() {
 
 			if( fields[j].size()>1) {
 				if( fields[j][0]==TAG_CHAR ) {
+					// TODO check if valid tag name
 					tag_no++;
 				}
 				if( fields[j][0]==PROJ_CHAR ) {
+					// TODO check if a valid proj name
 					proj=fields[j].substr(1);
 					proj_no++;
 				}
@@ -163,7 +203,7 @@ void Events::refreshJournal() {
 
 		if( proj_no>1 ) err=true;
 		if( ref_no>1  ) err=true;
-		if( err) continue;
+		if( err) continue; // TODO print an error msg
 
 		id_vec.push_back(0);
 		time_vec.push_back(time);
@@ -171,7 +211,7 @@ void Events::refreshJournal() {
 		proj_vec.push_back(proj);
 		tag_no_vec.push_back(tag_no);
 		line_vec.push_back(line);
-		len_vec.push_back(0.);
+		proj_len_vec.push_back(0.);
 
 		proj_set.insert( proj );
 
@@ -196,17 +236,17 @@ void Events::refreshJournal() {
 	}
 
 	for(auto i=0; i<time_vec.size()-1; i++) {
-		len_vec[i]=DTime::lenInDays(time_vec[i], time_vec[i+1]);
+		proj_len_vec[i]=DTime::lenInDays(time_vec[i], time_vec[i+1]);
 //			printf("%f %s   %f\n", timeStamps[i], msgs[i].c_str(), lengths[i]);
 	}
-	len_vec[len_vec.size()-1] = DTime::lenInDays( time_vec[ time_vec.size()-1  ], now );
+	proj_len_vec[proj_len_vec.size()-1] = DTime::lenInDays( time_vec[ time_vec.size()-1  ], now );
 
 	for(auto i=0; i<time_vec.size(); i++) {
 		pair<string,double> key( proj_vec[i], floor(time_vec[i]) );
 		if( proj_day_duration.find(key)!= proj_day_duration.end() ) {
-			proj_day_duration[key] += len_vec[i];
+			proj_day_duration[key] += proj_len_vec[i];
 		} else {
-			proj_day_duration[key] = len_vec[i];
+			proj_day_duration[key] = proj_len_vec[i];
 		}
 	}
 
@@ -235,6 +275,10 @@ double Events::queryTag(const string& tag) {
 		printf("# %s %.2f\n", tag.c_str(), sum);
 		return sum;
 	}
+}
+
+bool Events::tagExists(const string& tag) {
+	return !(find(ord_projects.begin(), ord_projects.end(), tag ) == ord_projects.end());
 }
 
 void Events::tagsForLastNDays(int N, vector<string>& tags, vector<double>& hours) {
@@ -268,7 +312,7 @@ bool Events::kill(int id, string& killed_line) {
 
 void Events::printDebugInfo() {
 	for(auto i=0; i<time_vec.size(); i++) {
-		printf("%d[%d]: %f %10s  len_vec %f  &%f  tag_no %d  tag_dur %f  %s\n", i, id_vec[i], time_vec[i], proj_vec[i].c_str(), len_vec[i], ref_vec[i], tag_no_vec[i], tag_duration_vec[i], line_vec[i].c_str());
+		printf("%d[%d]: %f  proj_vec %10s  len_vec %f  &%f  tag_no %d  tag_dur %f  line_vec %s\n", i, id_vec[i], time_vec[i], proj_vec[i].c_str(), proj_len_vec[i], ref_vec[i], tag_no_vec[i], tag_duration_vec[i], line_vec[i].c_str());
 	}
 }
 

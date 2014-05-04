@@ -22,24 +22,30 @@ class Events {
 private:
 	Msg& msg;
 
-	string journal_file;
-	vector<string> journal_raw;
+	// The following vectors have same length equal to the number of lines in
+	// the journal file.
+	vector<string> journal_raw;    // lines of the journal file
 
-	vector<double> time_vec, ref_vec, tag_duration_vec;
-	vector<int> tag_no_vec, id_vec;
-	vector<string> proj_vec, line_vec;
-	vector<double> len_vec;
+	vector<double> time_vec,		// time stamps of the lines
+				ref_vec, 			// time referenced in the line. 0. if no reference present.
+				tag_duration_vec;
+	vector<int> tag_no_vec, 		// number of tags found in each line
+				id_vec;				// lines with tags get extra line number and it is stored here. 0 means no extra number
+	vector<string> proj_vec, 		// project names in lines
+			line_vec;				// lines without time stamps
+	vector<double> proj_len_vec;	// project duration in days counted from current time stamp to the time stamp in th next line
 
-	map< double, int> line_no;		// time -> line number
+
+	map< double, int> line_no;		// time stamp  to  line number  map
 	map< int, int> id_to_line_no;
 
-	vector<string> ord_projects;
-	set<string> proj_set;
+	set<string> proj_set;			// set of all project names
+	vector<string> ord_projects;	// project names in some fixed order
 
 	vector<double > ts_dates;
-	map< string, vector<double> > ts;
+	map< string, vector<double> > ts;	// time series of daily project durations. length of ts[proj] is the length of ts_dates
 
-	map< pair<string, double>, double > proj_day_duration;
+	map< pair<string, double>, double > proj_day_duration;   // (proj_name, day) -> fraction of the day spent on proj
 
 	double now;
 	string active_proj;
@@ -56,6 +62,7 @@ public:
 	}
 
 	bool addEntry(const string&);
+	bool addNote(const string&);
 
 	bool closed() { return active_proj==NOTHING; }
 	bool isEmpty() { return journal_raw.size()==0; }
@@ -95,6 +102,7 @@ public:
 	}
 
 	double queryTag(const string&);
+	bool tagExists(const string&);
 
 	void printTimeSeries() {
 		printf("#date ");

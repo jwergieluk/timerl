@@ -1,4 +1,4 @@
-//  copyright (C) 2013-2013 Julian Wergieluk  <julian@wergieluk.com>
+//  copyright (C) 2013-2014 Julian Wergieluk  <julian@wergieluk.com>
 
 #ifndef CONFIG_H_
 #define CONFIG_H_

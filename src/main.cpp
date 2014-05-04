@@ -49,12 +49,12 @@ int main(int ac, char** av) {
 			m.printTags(7, tags, hours);
 			e.tagsForLastNDays(30, tags, hours);
 			m.printTags(30, tags, hours);
-//			if( !e.closed() ) {
-//				vector<int> id; vector<string> notes;
-//				e.getActiveNotes(id, notes);
-//				m.par();
-//				m.printActiveNotes( e.activeProj(), id, notes );
-//			}
+			if( !e.closed() ) {
+				vector<int> id; vector<string> notes;
+				e.getActiveNotes(id, notes);
+				m.par();
+				m.printActiveNotes( e.activeProj(), id, notes );
+			}
 		}
 
 		if( c.is("ts") ) {
@@ -88,8 +88,17 @@ int main(int ac, char** av) {
 			printf("Project %s+%s%s deactivated.\n", GREEN, prev_active.c_str() , RESET);
 		}
 
-		if( c.is("a") && c.getArgsVs().size()>0 ) {
-			if( e.addEntry(c.getArgs()) ) {
+		if( (c.is("a") || c.is("p") )&& c.getArgsVs().size()>0 ) {
+			// TODO check tag name
+			if( c.is("a") && !e.tagExists(c.getArgs()) ) {
+				m.error("Project tag not found in the journal file. Use command \'p\' to start a new project.");
+				throw 255;
+			}
+			if( c.is("p") && e.tagExists(c.getArgs())) {
+				m.error("Project tag already in use. Use command \'a\' to activate.");
+				throw 255;
+			}
+			if( e.addEntry(c.getArgs())) {
 				if( !j.addEntry( e.getLastLine() ) ) {
 					m.error("Writing to journal file.");
 					throw 255;
@@ -102,13 +111,13 @@ int main(int ac, char** av) {
 
 		if( c.is("n") && c.getArgsVs().size()>0 ) { // TODO no refs in notes and adds!
 			string active_proj=e.activeProj();
-			if( e.addEntry(c.getArgs()) ) {
+			if( e.addNote(c.getArgs()) ) {
 				if( !j.addEntry( e.getLastLine() ) ) {  m.error("Writing to journal file."); throw 255; }
 			} else {
 				throw 255;
 			}
-			e.addEntry(active_proj);
-			if( !j.addEntry( e.getLastLine() ) ) {  m.error("Writing to journal file."); throw 255; }
+//			e.addEntry(active_proj);
+//			if( !j.addEntry( e.getLastLine() ) ) {  m.error("Writing to journal file."); throw 255; }
 		}
 		if( c.is("n") && c.getArgsVs().size()==0 ) {
 			vector<int> id; vector<string> notes;
