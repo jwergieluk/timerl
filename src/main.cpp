@@ -19,7 +19,7 @@ int main(int ac, char** av) {
 		Cmd c(ac, av);
 
 		// TODO read this from environment
-		string journal_file = "/home/julian/.journal";
+		string journal_file = "/home/julian/.time";
 
 		Msg m;
 		Journal j;

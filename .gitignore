@@ -1,1 +1,4 @@
 /Release
+*.o
+timerl
+*.dblite
