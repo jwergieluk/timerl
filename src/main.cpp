@@ -33,7 +33,10 @@ int main(int ac, char** av) {
 		e.readJournal(j.getEntries());
 
 		if( c.is("")  ) {
-			if( e.isEmpty() ) throw 0;
+			if( e.isEmpty() ) {
+                m.printUsage();
+                throw 0;
+            }
 			if( !e.closed() ) {
 				printf("Active project is %s+%s%s.\n", GREEN, e.activeProj().c_str(), RESET);
 				printf("  (Use 'a' to deactivate or switch to another project)\n\n");

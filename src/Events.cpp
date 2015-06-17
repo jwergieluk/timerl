@@ -131,7 +131,7 @@ void Events::reset() {
 void Events::refreshJournal() {
 	reset();
 	if( journal_raw.size()==0) {
-		msg.info("Journal file is empty.");
+//		msg.info("Journal file is empty.");
 		return;
 	}
 

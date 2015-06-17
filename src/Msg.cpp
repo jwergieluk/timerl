@@ -146,5 +146,13 @@ void Msg::printTs(const string& proj, const vector<double>& dates, const vector<
 }
 
 void Msg::printUsage() {
-	printf("timerl (c) 2013-2014, Julian Wergieluk <julian@wergieluk.com>. Some rights reserved.\n");
+	printf("timerl (c) 2013-2014, Julian Wergieluk <julian@wergieluk.com>. Some rights reserved.\n\n");
+    printf("List of available commands:\n\n");
+    printf("  h  .. print this help message.\n");
+    printf("  p  .. activate time tracking for a new project.\n");
+    printf("  a  .. activate or deactivate a project.\n");
+    printf("  t  .. print tail of the .time file with your favorite $EDITOR.\n");
+    printf("  e  .. edit the .time file.\n");
+    printf("  q  .. querry data of a project.\n");
+    printf("  ts .. print time series.\n");
 }
